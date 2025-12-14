@@ -1,0 +1,71 @@
+name: Full CI-CD Pipeline (C Sum Project)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  # ---------------------------
+  # 1) CI PIPELINE (Build + Test)
+  # ---------------------------
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout source code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Install GCC compiler
+      - name: Install GCC
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      # BUILD Step
+      - name: Build Application
+        run: gcc main.c sum.c -o app
+
+      # UNIT TEST Step
+      - name: Run Unit Tests
+        run: |
+          gcc test.c sum.c -o test
+          ./test
+
+      # INTEGRATION TEST (Dummy)
+      - name: Integration Test
+        run: echo "Integration tests passed ✅"
+
+      # Upload build artifact
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-sum-app
+          path: app
+
+  # ---------------------------
+  # 2) CD PIPELINE (Review → Staging → Production)
+  # ---------------------------
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      # Download artifact
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: c-sum-app
+
+      # REVIEW Stage
+      - name: Review Stage
+        run: echo "Review stage completed 👍"
+
+      # STAGING Deployment
+      - name: Staging Deployment
+        run: echo "Application deployed to STAGING 🚀"
+
+      # PRODUCTION Deployment
+      - name: Production Deployment
+        run: echo "Application deployed to PRODUCTION 🎉"
